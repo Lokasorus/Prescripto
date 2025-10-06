@@ -3,6 +3,7 @@ import cors from 'cors'
 import 'dotenv/config'
 import connectDB from './config/mongodb.js'
 import connectCloudinary from './config/cloudinary.js'
+import adminRouter from './routes/adminRoute.js'
 
 //app config
 
@@ -17,6 +18,10 @@ app.use(express.json()) //it will act as middleware, whenever we make any reques
 app.use(cors()) //allow the frontend to connect with the backend
 
 // api endpoints
+
+app.use('/api/admin', adminRouter)
+
+// localhost:4000/api/admin
 
 app.get('/', (req, res)=>{
     res.send('API WORKING ')
