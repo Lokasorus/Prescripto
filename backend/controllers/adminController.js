@@ -14,7 +14,7 @@ const addDoctor = async (req, res) => {
        if(!name || !email || !password || !speciality || !degree || !experience || !about || !fee || !address){
         return res.json({
             success:false,
-            messsage: "Missing Details"
+            message: "Missing Details"
         })
        }
 
@@ -23,7 +23,7 @@ const addDoctor = async (req, res) => {
        if(!validator.isEmail(email)){
         return res.json({
             success:false,
-            messsage: "Please Enter a valid Email"
+            message: "Please Enter a valid Email"
         })
     }
 
@@ -32,7 +32,7 @@ const addDoctor = async (req, res) => {
         if(password.length < 8){
             return res.json({
             success:false,
-            messsage: "Please Enter a strong password"
+            message: "Please Enter a strong password"
         })
      }
 
@@ -61,7 +61,7 @@ const addDoctor = async (req, res) => {
        const newDoctor = new doctorModel(doctorData)
        await newDoctor.save() // data will be saved to database
 
-       res.json({sucess: true, message:"Doctor added"})
+       res.json({success: true, message:"Doctor added"})
         
         
 
@@ -95,4 +95,18 @@ const loginAdmin = async (req,res) => {
     }
 }
 
-export {addDoctor, loginAdmin}
+/// API to get all doctors list for admin panel
+
+const allDoctors = async (req, res) => {
+    try {
+
+        const doctors = await doctorModel.find({}).select('-password') //remove the password property from the doctors response
+        res.json({success:true, doctors})
+        
+    } catch (error) {
+        console.log(error)
+        res.json({success:false, message:error.message})
+    }
+
+}
+export {addDoctor, loginAdmin, allDoctors}
