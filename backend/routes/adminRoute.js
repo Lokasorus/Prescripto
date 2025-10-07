@@ -1,6 +1,7 @@
 import express from 'express'
 import { addDoctor, loginAdmin } from '../controllers/adminController.js'
 import upload from '../middlewares/multer.js'
+import authAdmin from '../middlewares/auth.admin.js'
 
 const adminRouter = express.Router()
 
@@ -10,7 +11,7 @@ adminRouter.get('/test', (req, res) => {
 })
 
 // Add doctor endpoint with file upload
-adminRouter.post('/add-doctor', upload.single('image'), addDoctor)
+adminRouter.post('/add-doctor',authAdmin, upload.single('image'), addDoctor) //using the authadmin middleware to verify token
 adminRouter.post('/login', loginAdmin)
 
 export default adminRouter
