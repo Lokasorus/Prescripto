@@ -75,4 +75,52 @@ const loginUser = async (req, res) => {
     }
 }
 
-export {registerUser, loginUser}
+//Get profile data api
+const getProfile = async (req, res) => {
+    try {
+        //getting the userid using the authentication
+        //user will send the token and by using that we will get the user id
+        //now to change the header into the user id we will create a middleware authUser
+        const { userId } = req.body
+        const  userData = await userModel.findById(userId).select('-password')
+
+        res.json({success:true, userData})
+
+    } catch (error) {
+        console.log(error)
+        res.json({success:false, message:error.message})    }
+}
+
+///api to update user profile
+const updateProfile = async (req, res) => {
+    try {
+
+        const{userId, name, phone, address, dob, gender} = req.body
+        const imageFile = req.file
+
+        if(!name || !phone || !address || !dob || !gender){
+            return res.json({success:false, message:"Data Missing"})
+        }
+
+        await userModel.findByIdAndUpdate(userId, {name, phone, address:JSON.parse(address), dob, gender})
+        if(imageFile){
+            // upload image to cloudinary
+            const imageUpload = await cloudinary.uploader.upload(imageFile.path, {resource_type:'image'})
+            const imageURL = imageUpload.secure_url
+
+            await userModel.findByIdAndUpdate(userId, {image: imageURL})
+
+        }
+
+        res.json({success: true, message:"Profile Updated"})
+        
+    } catch (error) {
+        console.log(error)
+        res.json({success:false, message:error.message})
+    }
+}
+
+
+///api to book the apppointment
+
+export {registerUser, loginUser, getProfile, updateProfile}
