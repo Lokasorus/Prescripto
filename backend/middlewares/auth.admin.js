@@ -19,7 +19,7 @@ const authAdmin = async (req, res, next) => {
             return res.json({success:false, message:error.message})
         }
 
-        next()
+        next() // transferred control to next function i.e all-doctors or add doctors
 
     } catch (error) {
         console.log(error)

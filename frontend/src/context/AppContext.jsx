@@ -36,23 +36,16 @@ const AppContextProvider = (props) => {
 
     const loadUserProfileData = async () => {
         try {
-            console.log('🔍 Loading user profile data...')
-            console.log('🔍 Token:', token)
-            console.log('🔍 Backend URL:', backendUrl)
 
             const {data} = await axios.get(backendUrl + '/api/user/get-profile', {headers: {token}})
-            console.log('📡 Profile API Response:', data)
-            
             if(data.success){
-                console.log('✅ User data loaded:', data.userData)
                 setUserData(data.userData)
             }else{
-                console.log('❌ Profile API failed:', data.message)
                 toast.error(data.message)
             }
             
         } catch (error) {
-            console.error('🚨 Profile API Error:', error)
+            console.log(error)
             toast.error(error.message)
         }
 
