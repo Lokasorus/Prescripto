@@ -6,6 +6,7 @@ import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import userModel from '../models/userModel.js'
 import doctorModel from '../models/doctorModel.js'
+import appointmentModel from '../models/appointmentModel.js'
 
 
 //API to register user
@@ -121,10 +122,12 @@ const updateProfile = async (req, res) => {
     }
 }
 
+///api to book the apppointment
+
 const bookAppointment = async(req, res) => {
     try {
 
-        const [userId, docId, slotDate, slotTime] = req.body
+        const {userId, docId, slotDate, slotTime} = req.body
         //to get the doc id
 
         const docData= await doctorModel.findById(docId).select('-password')
@@ -132,7 +135,7 @@ const bookAppointment = async(req, res) => {
         //if the doc is available or not for doc booking
         if(!docData.available){
             return res.json({
-                success: true,
+                success: false,
                 message:'Doctor not available'
             })
         }
@@ -146,7 +149,7 @@ const bookAppointment = async(req, res) => {
         if(slots_booked[slotDate]){
             if(slots_booked[slotDate].includes(slotTime)){
                  return res.json({
-                success: true,
+                success: false,
                 message:'slot not available'
             })}else{
                 slots_booked[slotDate].push(slotTime)
@@ -168,7 +171,7 @@ const bookAppointment = async(req, res) => {
             docId,
             userData,
             docData,
-            amount: docData.fees,
+            amount: docData.fee,
             slotTime,
             slotDate,
             date: Date.now()
@@ -196,7 +199,76 @@ const bookAppointment = async(req, res) => {
     }
 }
 
+//API to get user appointments for frontend my-appoitnments page
 
-///api to book the apppointment
+const listAppointment = async (req, res) => {
 
-export {registerUser, loginUser, getProfile, updateProfile}
+    try {
+        
+
+        const  {userId} = req.body
+        const appointments = await appointmentModel.find({userId}) // finding the appointment with the userId
+
+        res.json({
+            success:true, appointments
+        })
+    } catch (error) {
+         console.log(error)
+        res.json({success:false, message:error.message})
+        
+    }
+}
+//API to cancel the appointment
+
+const cancelAppointment = async (req, res) => {
+    try {
+
+        const {userId, appointmentId} = req.body //we will get the appointment from the users request body and we will provide the userID with authentication middleware
+
+        const appointmentData = await appointmentModel.findById(appointmentId)
+
+        // verify appointment user
+
+        if(appointmentData.userId !== userId) { //we will get the userID from the middleware and verify it
+            return res.json({
+                success:false,
+                message: 'Unauthorized action'
+            })
+
+
+
+        }
+
+        await appointmentModel.findByIdAndUpdate(appointmentId, {cancelled: true}) // making the appointment cancelled and then the slot time will be available then making the changes in doctors lot_booked object
+
+        //releasing the doctor slot
+
+        const {docId, slotDate, slotTime} = appointmentData
+
+        const doctorData = await doctorModel.findById(docId)
+
+        //extracting the slots_booked from this doctorData
+
+        let slots_booked = doctorData.slots_booked
+
+        slots_booked[slotDate] = slots_booked[slotDate].filter(e => e !== slotTime)
+
+        await doctorModel.findByIdAndUpdate(docId, {slots_booked})
+
+        res.json({
+            success:true,
+            message: 'Appointment cancelled'
+        })
+
+
+        
+    } catch (error) {
+        console.log(error)
+        res.json({success:false, message:error.message})
+    }
+}
+
+
+
+
+export {registerUser, loginUser, getProfile, updateProfile, bookAppointment, listAppointment}

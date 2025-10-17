@@ -1,14 +1,18 @@
 import React, { useContext, useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { AppContext } from '../context/AppContext';
 import { assets } from '../assets/assets';
 import RelatedDoctors from '../components/RelatedDoctors';
+import { toast } from 'react-toastify';
+import axios from 'axios';
 
 const Appointment = () => {
   const {docId} =  useParams()
-  const {doctors, currencySymbol} = useContext(AppContext)
+  const {doctors, currencySymbol, backendUrl, token, getDoctorsData} = useContext(AppContext)
 
   const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+
+  const navigate = useNavigate();
 
   //creating statevariable to store changing doc variable acc to docID
   const [docInfo, setDocInfo] = useState(null)
@@ -31,6 +35,11 @@ const Appointment = () => {
 
   //whenever the docInfo get changes we will execute this function there fore creating a useeffect for this purpose
   const getAvailableSlots = async () => {
+    //guard clause - don't proceed if docInfo is not available
+    if (!docInfo) {
+      return;
+    }
+
     //setting the slots of the doctor empty
     setDocSlots([]);
     //getting current date
@@ -62,11 +71,27 @@ const Appointment = () => {
         //creting the slot in every thirty minutes intervals
         let formattedTime = currentDate.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
 
-        //add slot to array
-        timeSlots.push({
-          dateTime: new Date(currentDate),
-          time: formattedTime
-        })
+        let day = currentDate.getDate()
+        let month = currentDate.getMonth()+1
+        let year = currentDate.getFullYear()
+
+        const slotDate = day + "_" + month + "_" + year 
+        const slotTime = formattedTime
+
+        const isSlotAvailable = docInfo.slots_booked[slotDate] && docInfo.slots_booked[slotDate].includes(slotTime) ? false: true;
+        
+        if(isSlotAvailable){
+
+
+           //add slot to array
+           timeSlots.push({
+             dateTime: new Date(currentDate),
+            time: formattedTime
+           })
+        }
+
+
+       
 
         //incrementing the time by 30 minutes
         currentDate.setMinutes(currentDate.getMinutes() + 30)
@@ -76,6 +101,56 @@ const Appointment = () => {
 
       setDocSlots(prev => ([...prev, timeSlots]))
     }
+
+  }
+
+  const bookAppointment =  async () => {
+    if(!token) { 
+      // checking if token is there or not
+      toast.warn('Login to book appoitnment')
+      return navigate('/login')
+
+
+    }
+    try {
+
+      const date = docSlots[slotIndex][0].dateTime //getting the date from the selected slot index
+
+      let day = date.getDate()
+      let month = date.getMonth()+1 //month is zero based index
+      let year = date.getFullYear()
+
+      const slotDate = day + "_" + month + "_" + year
+
+      
+      //api call to book the appointment
+
+      const { data } = await axios.post(backendUrl + '/api/user/book-appointment', {docId, slotDate, slotTime}, {headers: { token}}) // providing the body and headers for backend to take from
+
+      if(data.success){
+        toast.success(data.message)
+        getDoctorsData()
+        //send the users on my appointment page
+        navigate('/my-appointments')
+      } else {
+        toast.error(data.message)
+      }
+
+
+
+
+      
+    } catch (error) {
+
+      console.log(error)
+      toast.error(error.message)
+      
+    }
+
+    //linkiing this function to bookapppointment button
+
+
+
 
   }
 
@@ -165,7 +240,7 @@ const Appointment = () => {
             ))
           }
         </div>
-        <button className ='bg-primary text-white text-sm font-light px-14 py-3 rounded-full my-6'> Book an appoinment</button>
+        <button onClick = {bookAppointment} className ='bg-primary text-white text-sm font-light px-14 py-3 rounded-full my-6'> Book an appoinment</button>
 
       </div>
 
