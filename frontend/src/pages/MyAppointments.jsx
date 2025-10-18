@@ -4,12 +4,16 @@ import { useState } from 'react'
 import { useEffect } from 'react'
 import axios from 'axios'
 import { toast } from 'react-toastify'
+import { useNavigate } from 'react-router-dom'
+
 
 const MyAppointments = () => {
 
-  const {backendUrl, token} = useContext(AppContext)
+  const {backendUrl, token, getDoctorsData} = useContext(AppContext)
 
   const [appoitnments, setAppointments] = useState([])
+
+  const navigate = useNavigate();
 
   const months = [" ", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
@@ -40,6 +44,87 @@ const MyAppointments = () => {
       toast.error(error.message)
 
     }
+  }
+
+  const cancelAppointment = async (appointmentId) => {
+    try {
+  //    console.log(appointmentId)  //getting the appointment id on clicking cancel button
+  const {data} = await axios.post(backendUrl + '/api/user/cancel-appointment', {appointmentId}, {headers: {token}})
+  
+  if(data.success){
+    toast.success(data.message)
+
+    getUserAppointments() // to refresh the appointments list after cancelling an appointment
+    getDoctorsData() // to refresh the doctors data to update the slots booked
+
+  }else{
+    toast.error(data.message)
+  }
+      
+    } catch (error) {
+
+      console.log(error)
+      toast.error(error.message)
+      
+    }
+  }
+
+  const initPay = (order) => {
+
+    const options = {
+      key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+      amount: order.amount,
+      currency: order.currency,
+      name:'Appointment Payment',
+      description:'Appointment Payment',
+      order_id: order.id,
+      receipt: order.receipt,
+
+      //whenever the payments get successfull this handler will be called
+      handler: async (response) => {
+
+        console.log(response)
+
+        try {
+
+          const {data} = await axios.post(backendUrl + '/api/user/verify-razorpay', response, {headers: {token}})
+
+          if(data.success){
+            toast.success("Payment Successful!")
+            getUserAppointments() // to refresh the appointments data after successful payment
+          } else {
+            toast.error(data.message || "Payment verification failed")
+          }
+          
+        } catch (error) {
+          console.log(error)
+          toast.error(error.message)
+        }
+
+
+
+      }
+    }
+
+    const rzp = new window.Razorpay(options)
+    rzp.open()
+
+
+  }
+
+  const appointmentRazorpay = async (appointmentId) => {
+    try {
+
+      const {data} = await axios.post(backendUrl + '/api/user/payment-razorpay', {appointmentId}, {headers: {token}})
+
+      if(data.success){
+       initPay(data.order)
+      }
+      
+    } catch (error) {
+      
+    }
+
   }
 
   useEffect(() => {
@@ -76,9 +161,10 @@ const MyAppointments = () => {
               <div></div>
 
               <div className='flex flex-col gap-2 justify-end'>
-
-                <button className='text-sm text-stone-500 text-center sm:min-w-48 py-2 border rounded hover:bg-primary hover:text-white transition-all duration-300'>Pay Online</button>
-                <button className='text-sm text-stone-500 text-center sm:min-w-48 py-2 border rounded hover:bg-red-600 hover:text-white transition-all duration-300'>Cancel Appointment</button>
+                {!item.cancelled && item.payment && <button className ='sm:min-w-48 py-2 border rounded text-stone-500 bg-indigo-100'>Paid</button>}
+                {!item.cancelled && !item.payment && <button onClick ={() => appointmentRazorpay(item._id)} className='text-sm text-stone-500 text-center sm:min-w-48 py-2 border rounded hover:bg-primary hover:text-white transition-all duration-300'>Pay Online</button>}
+                {!item.cancelled && <button onClick = {() => cancelAppointment(item._id)} className='text-sm text-stone-500 text-center sm:min-w-48 py-2 border rounded hover:bg-red-600 hover:text-white transition-all duration-300'>Cancel Appointment</button>}
+                {item.cancelled && <button className = 'sm:min-w-48 py-2 border border-red-500 text-red-500'>Appointment Cancelled</button>}
 
               </div>
               
