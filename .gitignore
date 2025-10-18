@@ -6,7 +6,7 @@
 
 # Environment files with API keys and secrets
 .env
-backend/.env
+F:\PGM\Projects\Prescripto\backend\.env
 frontend/.env  
 admin/.env
 
