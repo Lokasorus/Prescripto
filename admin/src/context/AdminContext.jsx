@@ -1,8 +1,10 @@
 import axios from "axios";
+
 import { createContext, useState } from "react";
 import { toast } from "react-toastify";
 
-export const AdminContext = createContext()
+
+const AdminContext = createContext()
 
 const AdminContextProvider = (props) => {
 
@@ -10,6 +12,12 @@ const AdminContextProvider = (props) => {
     const backendUrl = import.meta.env.VITE_BACKEND_URL
 
      const[doctors, setDoctors] = useState([]) //for storing doctors list data getting from getAllDoctors api
+
+     //creating state variable to store the appointments data
+
+     const [appointments, setAppointments] = useState([])
+
+     const [dashData, setDashData] = useState(false) // to store the dashboard data like total doctors, total appointments, total users
 
     const getAllDoctors = async () => {
         try {
@@ -41,9 +49,62 @@ const AdminContextProvider = (props) => {
         }
     }
 
+    const getAllAppointments = async () => {
+
+        try {
+
+            const {data} = await axios.get(backendUrl + '/api/admin/appointments', {headers: {aToken}})
+            if(data.success){
+                setAppointments(data.appointments)
+                console.log(data.appointments)
+            }else{
+                toast.error(data.message)
+            }
+            
+        } catch (error) {
+            toast.error(error.message)
+        }
+    }
+
+    const getDashData = async () => {
+        try {
+
+            const{data} = await axios.get(backendUrl + '/api/admin/dashboard', {headers: {aToken}})
+
+            if(data.success){
+                setDashData(data.dashData)
+                console.log(data.dashData)
+
+            }else{
+                toast.error(data.message)
+            }
+            
+        } catch (error) {
+            toast.error(error.message)
+            
+        }
+    }
+
+    const cancelAppointment = async (appointmentId) => {
+        try {
+
+            const {data} = await axios.post(backendUrl + '/api/admin/cancel-appointment', {appointmentId}, {headers: {aToken}})
+            if(data.success){
+                toast.success(data.message)
+                getAllAppointments() // to refresh the appointments list after cancelling an appointment
+            }else{
+                toast.error(data.message)
+            }
+
+            
+        } catch (error) {
+            toast.error(error.message)
+        }
+    }
+
 
     const value = {
-        aToken, setAToken, backendUrl, doctors, getAllDoctors, changeAvailability
+        aToken, setAToken, backendUrl, doctors, getAllDoctors, changeAvailability, appointments, setAppointments, getAllAppointments, cancelAppointment, dashData, getDashData
 
     }
 
@@ -55,6 +116,7 @@ const AdminContextProvider = (props) => {
     )
 }
 
-export default AdminContextProvider
+export { AdminContext };
+export default AdminContextProvider;
 
 
