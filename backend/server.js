@@ -10,14 +10,29 @@ import userRouter from './routes/userRoute.js'
 //app config
 
 const app = express()
-const port = process.env.PORT || 4000 //port from env file or 4000
+const port = process.env.PORT || 4000;
+app.listen(port, () => console.log(`Server started on port ${port}`));
+
 connectDB()
 connectCloudinary()
 
 //middlewares
 app.use(express.json()) //it will act as middleware, whenever we make any request then the request will pas using this mehtod
 
-app.use(cors()) //allow the frontend to connect with the backend
+// CORS configuration for production
+const corsOptions = {
+    origin: process.env.NODE_ENV === 'production' 
+        ? [
+            process.env.FRONTEND_URL || 'https://prescripto-frontend-7rcx.onrender.com',
+            process.env.ADMIN_URL || 'https://prescripto-admin-kyos.onrender.com'
+          ]
+        : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'token', 'aToken', 'dToken']
+}
+
+app.use(cors(corsOptions)) //allow the frontend to connect with the backend
 
 // api endpoints
 
