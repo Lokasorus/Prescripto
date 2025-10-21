@@ -4,7 +4,7 @@ import { AppContext } from '../context/AppContext'
 import axios from 'axios'
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { toast } from 'react-toastify'
+import { toast } from 'react-toastify';
 
 const Login = () => {
 
@@ -23,7 +23,7 @@ const onSubmitHandler = async(event) => {
 
   try {
 
-    if(state === 'sign Up'){
+    if(state === 'Sign Up'){
       const {data} = await axios.post(backendUrl + '/api/user/register', {name, email, password}) //already have state variable for name, email, password linked with input fields
 
       if(data.success){
