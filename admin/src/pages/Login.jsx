@@ -8,7 +8,7 @@ import { toast } from 'react-toastify'
 import { DoctorContext } from '../context/DoctorContext'
 
 
-const login = () => {
+const Login = () => {
 
     const [state, setState] = useState('Admin')
     const {setAToken, backendUrl} = useContext(AdminContext)
@@ -95,4 +95,4 @@ const login = () => {
   )
 }
 
-export default login
+export default Login
