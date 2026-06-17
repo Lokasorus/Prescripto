@@ -317,7 +317,6 @@ const verifyRazorpay = async (req, res) => {
         }
         
         const orderInfo = await razorpayInstance.orders.fetch(razorpay_order_id)
-        console.log('Order Info from Razorpay:', orderInfo)
 
        
 
