@@ -98,29 +98,19 @@ const DoctorContextProvider = (props) => {
 
     const getProfileData = async () => {
         try {
-            console.log('=== GET PROFILE DEBUG ===')
-            console.log('backendUrl:', backendUrl)
-            console.log('dToken:', dToken)
-            console.log('Request URL:', backendUrl + '/api/doctor/profile')
 
             const {data} = await axios.get(backendUrl + '/api/doctor/profile', {headers: {dToken}})
-            
-            console.log('Full response:', data)
-            console.log('Success:', data.success)
-            console.log('Profile Data:', data.profileData)
 
             if(data.success){
                 setProfileData(data.profileData)
-                console.log('✅ Profile data set successfully:', data.profileData)
+                console.log(data.profileData)
                 
             }else{
-                console.log('❌ Backend returned success: false')
                 toast.error(data.message)
             }
             
         } catch (error) {
-            console.log('❌ Error occurred:', error)
-            console.log('Error response:', error.response?.data)
+            console.log(error)
             toast.error(error.message)
         }
     }

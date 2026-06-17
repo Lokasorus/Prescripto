@@ -11,10 +11,12 @@ import userRouter from './routes/userRoute.js'
 
 const app = express()
 const port = process.env.PORT || 4000;
-app.listen(port, () => console.log(`Server started on port ${port}`));
 
-connectDB()
-connectCloudinary()
+const skipExternals = process.env.SKIP_EXTERNALS === '1'
+if (!skipExternals) {
+    connectDB()
+    connectCloudinary()
+}
 
 //middlewares
 app.use(express.json()) //it will act as middleware, whenever we make any request then the request will pas using this mehtod
@@ -40,6 +42,6 @@ app.get('/', (req, res)=>{
 } )
 
 //start the express app
-app.listen(port, ()=> console.log("Server Started", port))
+app.listen(port, () => console.log(`Server started on port ${port}`))
 
 

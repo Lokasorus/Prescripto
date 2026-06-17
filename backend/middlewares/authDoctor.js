@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken'
 const authDoctor = async (req, res, next) => {
     try {
         //if we have the token then only we can allow the user to make the api call otherwise we will terminate it
+        //headers are case insensitive
 
         const dToken = req.headers.dtoken || req.headers.dToken
         if(!dToken){
