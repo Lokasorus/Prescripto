@@ -10,7 +10,7 @@ export const AppContext = createContext()
 // eslint-disable-next-line react-refresh/only-export-components
 const AppContextProvider = (props) => {
 
-    const currencySymbol = '$'
+    const currencySymbol = '₹'
     const backendUrl = import.meta.env.VITE_BACKEND_URL
 
     const[doctors, setDoctors] = useState([]) //for storing doctors list data getting from getDoctors api
